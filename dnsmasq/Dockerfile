@@ -1,9 +1,11 @@
 FROM alpine:latest
 MAINTAINER Laam Alif <BM-2cTcqbjfH3kg9FrhMPoxJ2DrTzE5UAeQT5@bitmessage.ch>
 
+RUN apk --update add dnsmasq supervisor
+
 RUN echo http://dl-3.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories
 RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
-RUN apk --update add libsodium dnscrypt-proxy dnsmasq supervisor
+RUN apk --update add libsodium dnscrypt-proxy
 
 RUN mkdir /etc/supervisor.d
 RUN rm -fr /etc/dnsmasq.conf
