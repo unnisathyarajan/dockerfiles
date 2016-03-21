@@ -1,0 +1,7 @@
+vault:
+  image: vault
+  mem_limit: 32m
+  ports:
+   - "8200:8200"
+  volumes:
+   - /data/vault:/var/lib/vault
