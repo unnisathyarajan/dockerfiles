@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+from bs4 import BeautifulSoup
+import re
+import urllib2
+import json
+import requests
+from PIL import Image
+import sys
+import os
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+if len(sys.argv) != 2:
+    print "Usage: python download.py http://bookUrl/"
+    sys.exit()
+
+bookUrl = sys.argv[1]
+
+print "Got URL {}".format(bookUrl)
+print "Getting book info"
+
+response = urllib2.urlopen(bookUrl)
+html = response.read()
+
+soup = BeautifulSoup(html, "html.parser")
+
+scriptText = soup.find(text=re.compile("pages"))
+
+pages = re.findall("[0-9]+.jpg", scriptText)
+
+print "Found {} pages".format(len(pages))
+
+bookIdText = re.findall("bookId.*", scriptText)[0]
+
+bookId = re.findall("[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}", bookIdText)[0]
+
+pageIds = re.findall("[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}", scriptText)
+
+for (i, page) in enumerate(pages):
+
+    dataUrl = "https://rekhta.org/Api_GetEBookPageById/?pageId=" + pageIds[i]
+
+    rr = urllib2.urlopen(dataUrl)
+    html2 = rr.read()
+
+    data = json.loads(html2)
+
+    print "Downloading {} file".format(page)
+
+    f = open(page, "wb")
+    f.write(requests.get("http://rekhta.org/Images/SiteImages/EBooks/Encrypted/{}/{}".format(bookId, page)).content)
+    f.close()
+
+    print "Processing {} file".format(page)
+
+    mainImg = Image.open(page)
+
+    im = Image.new("RGB", (data["PageWidth"],data["PageHeight"]), "white")
+
+    looptimes = data["X"] * data["Y"]
+
+    s = 56
+
+    for x in range(0, looptimes):
+        # data.Sub[i].X1 * (s + 16), data.Sub[i].Y1 * (s + 16), s, s, data.Sub[i].X2 * m, data.Sub[i].Y2 * m, m, m)
+
+        cropX = data["Sub"][x]["X1"] * 66
+        cropY = data["Sub"][x]["Y1"] * 66
+
+        pasteX = data["Sub"][x]["X2"] * 50
+        pasteY = data["Sub"][x]["Y2"] * 50
+
+        cropBox = (cropX, cropY, cropX + s, cropY + s)
+
+        pasteBox = (pasteX, pasteY)
+        cropRegion = mainImg.crop(cropBox)
+
+        im.paste(cropRegion, pasteBox)
+
+    outputFileName = "{}.jpg".format(str(i + 1).zfill(3))
+
+    im.save(outputFileName, "JPEG", optimize=True)
+    #if os.path.isfile(page):
+    #    os.remove(page)
+
+    print "Saved output filename {}".format(outputFileName)
+
+    print ""
