@@ -7,7 +7,7 @@ sudo docker build -t dnsmasq .
 
 run:
 ~~~ sh
-sudo docker run --name dnsmasq -p 127.0.0.1:53:53 -p 127.0.0.1:53:53/udp dnsmasq
+sudo docker run -d --name dnsmasq -p 127.0.0.1:53:53 -p 127.0.0.1:53:53/udp dnsmasq
 ~~~
 
 logs:
