@@ -73,7 +73,7 @@ for page in workingPages:
 
     pageIndex = pages.index(page)
 
-    dataUrl = "https://rekhta.org/Api_GetEBookPageById/?pageId=" + pageIds[pageIndex]
+    dataUrl = "https://ebooksapi.rekhta.org/api_getebookpagebyid/?pageid=" + pageIds[pageIndex]
 
     rr = urllib2.urlopen(dataUrl)
     html2 = rr.read()
@@ -83,7 +83,8 @@ for page in workingPages:
     print "Downloading {} file".format(page)
 
     f = open(page, "wb")
-    f.write(requests.get("http://rekhta.org/Images/SiteImages/EBooks/Encrypted/{}/{}".format(bookId, page)).content)
+    
+    f.write(requests.get("https://ebooksapi.rekhta.org/api_getebookpageimage?ebookid={}&pageid={}".format(bookId, page)).content)
     f.close()
 
     print "Processing {} file".format(page)
@@ -99,7 +100,7 @@ for page in workingPages:
     looptimesRange = range(0, looptimes)
 
     for x in looptimesRange:
-        # data.Sub[i].X1 * (s + 16), data.Sub[i].Y1 * (s + 16), s, s, data.Sub[i].X2 * m, data.Sub[i].Y2 * m, m, m)
+        #data.Sub[i].X1 * (s + 16), data.Sub[i].Y1 * (s + 16), s, s, data.Sub[i].X2 * m, data.Sub[i].Y2 * m, m, m)
 
         cropX = data["Sub"][x]["X1"] * 66
         cropY = data["Sub"][x]["Y1"] * 66
