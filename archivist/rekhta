@@ -8,8 +8,6 @@ from PIL import Image
 import sys
 import os
 import ssl
-from lxml import html
-from lxml.etree import tostring
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -65,6 +63,7 @@ workingPages = pages
 print "Pages: \033[94m{}\n\033[0m".format(len(pages))
 #print "Pages: {}\n".format(len(pages))
 
+os.system("rm -fr *.jpg")
 # for single page
 if pagesParam != -1 and "-" not in str(pagesParam):
     workingPages = [pages[pagesParam]]
