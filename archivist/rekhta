@@ -9,7 +9,6 @@ import sys
 import os
 import ssl
 import uuid
-from shutil import rmtree
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
