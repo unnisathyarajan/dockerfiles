@@ -8,6 +8,8 @@ from PIL import Image
 import sys
 import os
 import ssl
+import uuid
+from shutil import rmtree
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -48,6 +50,10 @@ html = response.read()
 soup = BeautifulSoup(html, "html.parser")
 title = soup.h5.string
 volume = soup.h6.string
+mktemp = uuid.uuid4().hex
+os.makedirs(mktemp)
+os.chdir(mktemp)
+
 
 if volume == None:
     name = ("%s") % (title)
@@ -127,7 +133,6 @@ for page in workingPages:
         im.paste(cropRegion, pasteBox)
 
     outputFileName = "{}.jpg".format(str(pageIndex + 1).zfill(4))
-
     im.save(outputFileName, "JPEG", optimize=True)
     if os.path.isfile(page):
         os.remove(page)
@@ -138,4 +143,5 @@ for page in workingPages:
 
 print("Generting PDF: "+'\033[91m' + "%s.pdf" + '\033[0m') % (name)
 os.system('convert *.jpg "%s".pdf' % name)
-os.system("rm -fr *.jpg")
+os.system("mv *.pdf ../")
+os.system('rm -fr ../%s' % mktemp)
