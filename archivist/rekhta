@@ -67,9 +67,8 @@ pages = re.findall("[0-9]+.jpg", scriptText)
 workingPages = pages
 print "Pages: \033[94m{}\n\033[0m".format(len(pages))
 #print "Pages: {}\n".format(len(pages))
-
-os.system("rm -fr *.jpg")
 # for single page
+
 if pagesParam != -1 and "-" not in str(pagesParam):
     workingPages = [pages[pagesParam]]
     print "Processing {}".format(pagesParam + 1)
@@ -80,55 +79,34 @@ if startRange != -1 and endRange != -1:
     print "Processing {}-{}".format(startRange + 1, endRange)
 
 bookIdText = re.findall("bookId.*", scriptText)[0]
-
 bookId = re.findall("[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}", bookIdText)[0]
-
 pageIds = re.findall("[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}", scriptText)
 
 for page in workingPages:
-
     pageIndex = pages.index(page)
-
     dataUrl = "https://ebooksapi.rekhta.org/api_getebookpagebyid/?pageid=" + pageIds[pageIndex]
-
     rr = urllib2.urlopen(dataUrl)
     html2 = rr.read()
-
     data = json.loads(html2)
-
     print "Downloading {} file".format(page)
-
     f = open(page, "wb")
-    
     f.write(requests.get("https://ebooksapi.rekhta.org/api_getebookpageimage?ebookid={}&pageid={}".format(bookId, page)).content)
     f.close()
-
     print "Processing {} file".format(page)
-
     mainImg = Image.open(page)
-
     im = Image.new("RGB", (data["PageWidth"],data["PageHeight"]), "white")
-
     looptimes = data["X"] * data["Y"]
-
     s = 56
-
     looptimesRange = range(0, looptimes)
-
     for x in looptimesRange:
         # data.Sub[i].X1 * (s + 16), data.Sub[i].Y1 * (s + 16), s, s, data.Sub[i].X2 * m, data.Sub[i].Y2 * m, m, m)
-
         cropX = data["Sub"][x]["X1"] * 66
         cropY = data["Sub"][x]["Y1"] * 66
-
         pasteX = data["Sub"][x]["X2"] * 50
         pasteY = data["Sub"][x]["Y2"] * 50
-
         cropBox = (cropX, cropY, cropX + s, cropY + s)
-
         pasteBox = (pasteX, pasteY)
         cropRegion = mainImg.crop(cropBox)
-
         im.paste(cropRegion, pasteBox)
 
     outputFileName = "{}.jpg".format(str(pageIndex + 1).zfill(4))
