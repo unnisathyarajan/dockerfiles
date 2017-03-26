@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from bs4 import BeautifulSoup
 import re
 import urllib2
@@ -58,6 +61,8 @@ if volume == None:
     name = ("%s") % (title)
 else:
     name = ("%s - %s") % (title, volume)
+
+name = re.sub("،", "-", name)
 
 print("Name: "+'\033[92m' + "%s" + '\033[0m') % (name)
 
