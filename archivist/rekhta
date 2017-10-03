@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from bs4 import BeautifulSoup
+from lxml import html
+from lxml.etree import tostring
 import re
 import urllib2
 import json
@@ -47,14 +48,37 @@ print "URL {}".format(bookUrl)
 print "Fetching details...."
 
 response = urllib2.urlopen(bookUrl)
-html = response.read()
+htmlx = response.read()
 
-soup = BeautifulSoup(html, "html.parser")
+soup = BeautifulSoup(htmlx, "html.parser")
 title = soup.h5.string
 volume = soup.h6.string
 mktemp = uuid.uuid4().hex
 os.makedirs(mktemp)
 os.chdir(mktemp)
+
+h = requests.get(bookUrl).content
+tree = html.fromstring(h)
+
+bookData = []
+
+for x in tree.xpath('//div[@class="B-descript"]'):
+    title = x.xpath('h5/text()')[0]
+    bookD = {'TITLE': title, 'PUBLISHER': '', 'AUTHOR': '', 'YEAR': ''}
+
+    for u in x.xpath('ul/li/p'):
+        if u.text.strip() == 'PUBLISHER':
+            bookD['PUBLISHER'] = u.xpath('span')[0].text.strip()
+        elif u.text.strip() == 'YEAR':
+            bookD['YEAR'] = u.xpath('span')[0].text.strip()
+        elif u.text.strip() == 'AUTHOR':
+            bookD['AUTHOR'] = tostring(u.xpath('span/a')[0], method="text")
+
+    bookData.append(bookD)
+
+author = bookData[0]['AUTHOR']
+year = bookData[0]['YEAR']
+publisher = bookData[0]['PUBLISHER']
 
 
 if volume == None:
@@ -64,7 +88,11 @@ else:
 
 name = re.sub("،", "-", name)
 
+
 print("Name: "+'\033[92m' + "%s" + '\033[0m') % (name)
+print("Author: "+'\033[93m' + "%s" + '\033[0m') % (author)
+print("Year: "+'\033[95m' + "%s" + '\033[0m') % (year)
+print("Publisher: "+'\033[94m' + "%s" + '\033[0m') % (publisher)
 
 scriptText = soup.find(text=re.compile("pages"))
 
@@ -73,6 +101,7 @@ workingPages = pages
 print "Pages: \033[94m{}\n\033[0m".format(len(pages))
 #print "Pages: {}\n".format(len(pages))
 # for single page
+
 
 if pagesParam != -1 and "-" not in str(pagesParam):
     workingPages = [pages[pagesParam]]
@@ -89,13 +118,13 @@ pageIds = re.findall("[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4
 
 for page in workingPages:
     pageIndex = pages.index(page)
-    dataUrl = "https://ebooksapi.rekhta.org/api_getebookpagebyid/?pageid=" + pageIds[pageIndex]
+    dataUrl = "https://rbookscdn.azureedge.net/api_getebookpagebyid/?pageid=" + pageIds[pageIndex]
     rr = urllib2.urlopen(dataUrl)
     html2 = rr.read()
     data = json.loads(html2)
     print "Downloading {} file".format(page)
     f = open(page, "wb")
-    f.write(requests.get("https://ebooksapi.rekhta.org/api_getebookpageimage?ebookid={}&pageid={}".format(bookId, page)).content)
+    f.write(requests.get("https://rbookscdn.azureedge.net/api_getebookpageimage?ebookid={}&pageid={}".format(bookId, page)).content)
     f.close()
     print "Processing {} file".format(page)
     mainImg = Image.open(page)
@@ -124,6 +153,12 @@ for page in workingPages:
     print ""
 
 print("Generting PDF: "+'\033[91m' + "%s.pdf" + '\033[0m') % (name)
-os.system('convert *.jpg "%s".pdf' % name)
+if os.path.isfile('../%s.pdf' % name) == True:
+    s = name.replace(" ", "_")
+    os.system('convert *.jpg pdfa:"%s".pdf' % s)
+else:
+    os.system('convert *.jpg pdfa:"%s".pdf' % name)
+
+os.system('exiftool -Title="%s" -Author="%s" -xmp-dc:Publisher="%s" -Copyright="%s" *.pdf' % (title, author, publisher, year))
 os.system("mv *.pdf ../")
 os.system('rm -fr ../%s' % mktemp)
