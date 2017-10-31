@@ -80,7 +80,6 @@ author = bookData[0]['AUTHOR']
 year = bookData[0]['YEAR']
 publisher = bookData[0]['PUBLISHER']
 
-
 if volume == None:
     name = ("%s") % (title)
 else:
@@ -98,7 +97,6 @@ scriptText = soup.find(text=re.compile("pages"))
 pages = re.findall("[0-9]+.jpg", scriptText)
 workingPages = pages
 print "Pages: \033[94m{}\n\033[0m".format(len(pages))
-
 
 if pagesParam != -1 and "-" not in str(pagesParam):
     workingPages = [pages[pagesParam]]
@@ -158,6 +156,6 @@ else:
     os.system('convert *.jpg pdfa:"%s".pdf' % name)
     #os.system('img2pdf *.jpg --output "%s".pdf' % name)
 
-os.system('exiftool -Title="%s" -Author="%s" -xmp-dc:Publisher="%s" -Copyright="%s" *.pdf' % (title, author, publisher, year))
+#os.system('exiftool -Title="%s" -Author="%s" -xmp-dc:Publisher="%s" -Copyright="%s" *.pdf' % (title, author, publisher, year))
 os.system("mv *.pdf ../")
 os.system('rm -fr ../%s' % mktemp)
