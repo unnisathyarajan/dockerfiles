@@ -18,13 +18,13 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 sysArgLen = len(sys.argv)
 if not (sysArgLen >= 2 and sysArgLen <= 3):
-    print "Download all pages"
+    print "fetch all pages"
     print "\tUsage: python download.py http://bookUrl/"
     print ""
-    print "Download specific pages"
+    print "fetch specific pages"
     print "\tUsage: python download.py http://bookUrl/ 400-420"
     print ""
-    print "Download single page"
+    print "fetch single page"
     print "\tUsage: python download.py http://bookUrl/ 411"
     sys.exit()
 
@@ -45,7 +45,7 @@ if sysArgLen == 3:
         pagesParam = int(pagesParam) - 1
 
 print "URL {}".format(bookUrl)
-print "Fetching details...."
+print "fetching details...."
 
 response = urllib2.urlopen(bookUrl)
 htmlx = response.read()
@@ -88,7 +88,6 @@ else:
 
 name = re.sub("،", "-", name)
 
-
 print("Name: "+'\033[92m' + "%s" + '\033[0m') % (name)
 print("Author: "+'\033[93m' + "%s" + '\033[0m') % (author)
 print("Year: "+'\033[95m' + "%s" + '\033[0m') % (year)
@@ -99,8 +98,6 @@ scriptText = soup.find(text=re.compile("pages"))
 pages = re.findall("[0-9]+.jpg", scriptText)
 workingPages = pages
 print "Pages: \033[94m{}\n\033[0m".format(len(pages))
-#print "Pages: {}\n".format(len(pages))
-# for single page
 
 
 if pagesParam != -1 and "-" not in str(pagesParam):
@@ -118,15 +115,15 @@ pageIds = re.findall("[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4
 
 for page in workingPages:
     pageIndex = pages.index(page)
-    dataUrl = "https://rbookscdn.azureedge.net/api_getebookpagebyid/?pageid=" + pageIds[pageIndex]
+    dataUrl = "https://rbookscdn2.azureedge.net/api_getebookpagebyid/?pageid=" + pageIds[pageIndex]
     rr = urllib2.urlopen(dataUrl)
     html2 = rr.read()
     data = json.loads(html2)
-    print "Downloading {} file".format(page)
+    print "fetching {} file".format(page)
     f = open(page, "wb")
-    f.write(requests.get("https://rbookscdn.azureedge.net/api_getebookpageimage?ebookid={}&pageid={}".format(bookId, page)).content)
+    f.write(requests.get("https://rbookscdn2.azureedge.net/api_getebookpageimage?ebookid={}&pageid={}".format(bookId, page)).content)
     f.close()
-    print "Processing {} file".format(page)
+    print "processing {} file".format(page)
     mainImg = Image.open(page)
     im = Image.new("RGB", (data["PageWidth"],data["PageHeight"]), "white")
     looptimes = data["X"] * data["Y"]
@@ -148,16 +145,18 @@ for page in workingPages:
     if os.path.isfile(page):
         os.remove(page)
 
-    print "Saved output filename {}".format(outputFileName)
-
+    print "saved output filename {}".format(outputFileName)
     print ""
 
 print("Generting PDF: "+'\033[91m' + "%s.pdf" + '\033[0m') % (name)
+
 if os.path.isfile('../%s.pdf' % name) == True:
     s = name.replace(" ", "_")
     os.system('convert *.jpg pdfa:"%s".pdf' % s)
+    #os.system('img2pdf *.jpg --output "%s".pdf' % s)
 else:
     os.system('convert *.jpg pdfa:"%s".pdf' % name)
+    #os.system('img2pdf *.jpg --output "%s".pdf' % name)
 
 os.system('exiftool -Title="%s" -Author="%s" -xmp-dc:Publisher="%s" -Copyright="%s" *.pdf' % (title, author, publisher, year))
 os.system("mv *.pdf ../")
