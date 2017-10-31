@@ -150,11 +150,9 @@ print("Generting PDF: "+'\033[91m' + "%s.pdf" + '\033[0m') % (name)
 
 if os.path.isfile('../%s.pdf' % name) == True:
     s = name.replace(" ", "_")
-    os.system('convert *.jpg pdfa:"%s".pdf' % s)
-    #os.system('img2pdf *.jpg --output "%s".pdf' % s)
+    os.system('img2pdf *.jpg --output "%s".pdf' % s)
 else:
-    os.system('convert *.jpg pdfa:"%s".pdf' % name)
-    #os.system('img2pdf *.jpg --output "%s".pdf' % name)
+    os.system('img2pdf *.jpg --output "%s".pdf' % name)
 
 #os.system('exiftool -Title="%s" -Author="%s" -xmp-dc:Publisher="%s" -Copyright="%s" *.pdf' % (title, author, publisher, year))
 os.system("mv *.pdf ../")
